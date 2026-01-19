@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury Collection</title>
+
+<style>
+:root {
+  --black: #0b0b0b;
+  --gold: #d4af37;
+  --silver: #c0c0c0;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--black);
+  color: white;
+  padding: 30px;
+}
+
+h1 {
+  text-align: center;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 40px;
+}
+
+#controls {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+button {
+  background: linear-gradient(135deg, var(--gold), var(--silver));
+  color: black;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+#gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+}
+
+.product {
+  background: #111;
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.product:hover {
+  transform: translateY(-6px);
+}
+
+.product img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.product h3 {
+  margin: 8px 0;
+  color: var(--gold);
+}
+
+.product p {
+  color: var(--silver);
+  margin-bottom: 10px;
+}
+
+.edit-btn {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+#imageUpload {
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>LUXURY ACCESSORIES</h1>
+
+<div id="controls">
+  <button id="addProductBtn">Add Product</button>
+</div>
+
+<div id="gallery"></div>
+<input type="file" id="imageUpload" accept="image/*">
+
+<script>
+const PASSWORD = "CHANGE_THIS_PASSWORD"; // change this
+let isLoggedIn = false;
+
+const gallery = document.getElementById("gallery");
+const addBtn = document.getElementById("addProductBtn");
+const imageUpload = document.getElementById("imageUpload");
+
+let products = JSON.parse(localStorage.getItem("products") || "[]");
+
+function save() {
+  localStorage.setItem("products", JSON.stringify(products));
+}
+
+function render() {
+  gallery.innerHTML = "";
+  products.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <img src="${p.img}">
+      <h3>${p.name}</h3>
+      <p>${p.price}</p>
+      ${isLoggedIn ? '<button class="edit-btn">Edit</button>' : ''}
+    `;
+    if (isLoggedIn) {
+      div.querySelector(".edit-btn").onclick = () => editProduct(i);
+    }
+    gallery.appendChild(div);
+  });
+}
+
+function addProduct() {
+  products.push({
+    name: "New Item",
+    price: "Price",
+    img: "https://via.placeholder.com/300"
+  });
+  save();
+  render();
+}
+
+function editProduct(i) {
+  let p = products[i];
+  let n = prompt("Product name:", p.name);
+  if (n) p.name = n;
+
+  let pr = prompt("Price:", p.price);
+  if (pr) p.price = pr;
+
+  imageUpload.onchange = e => {
+    let file = e.target.files[0];
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = () => {
+      p.img = reader.result;
+      save();
+      render();
+    };
+    reader.readAsDataURL(file);
+  };
+  imageUpload.click();
+}
+
+addBtn.onclick = () => {
+  if (!isLoggedIn) {
+    let entered = prompt("Admin password:");
+    if (entered === PASSWORD) {
+      isLoggedIn = true;
+      addProduct();
+    } else {
+      alert("Access denied");
+    }
+  } else {
+    addProduct();
+  }
+};
+
+render();
+</script>
+
+</body>
+</html>
